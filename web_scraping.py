@@ -34,7 +34,7 @@ query = "(Nestlé OR Nestle OR #Nestlé OR #Nestle lang:fr"
 
 tweets = []
 for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
-    if i>100:
+    if i>100000:
         break
     else:
         tweets.append ([tweet.date, tweet.id, tweet.url, tweet.user.username, tweet.sourceLabel, tweet.user.location, tweet.content, tweet.likeCount, tweet.retweetCount])
