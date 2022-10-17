@@ -103,7 +103,7 @@ def bar_chart_sentiment_mean(df):
     #df = pd.concat([df1, df2, df3])
     return st.write(df1), st.bar_chart(df1)
 
-def vis_1_overview(df):
+def add_sentiment(df):
     if not df.empty:
         df["Most possible sentiment"] = np.nan
         for i in range(0, len(df)):
@@ -114,7 +114,10 @@ def vis_1_overview(df):
             if max_value == pos_perc: df.at[i, "Most possible sentiment"] = "Positive"
             elif max_value == neg_perc: df.at[i, "Most possible sentiment"] = "Negative"
             else: df.at[i, "Most possible sentiment"] = "Neutral"
+        return df
 
+def vis_1_overview(df):
+    if not df.empty:
         df = df.groupby(["Most possible sentiment"]).size().to_frame().sort_values([0], ascending = False).reset_index()
         df = df.rename(columns={"Most possible sentiment": 'sentiment', 0: 'count'})
         df['angle'] = df['count']/df['count'].sum() * 2 * pi
@@ -135,9 +138,30 @@ def vis_1_overview(df):
         pie_fig.grid.grid_line_color = None
         st.bokeh_chart(pie_fig, use_container_width=True)
 
-def main():
-        
+def year(Date):
+    return Date.year
 
+def month(Date):
+    return Date.month
+
+def day(Date):
+    return Date.day
+
+def vis_2_development(df, frequency, intervall):
+    if not df.empty:
+        if frequency == "month":
+            df["filter"] = df["Date"].apply(year)
+            df["sort"] = df["Date"].apply(month)
+        else: #frequency == "day":
+            df["filter"] = df["Date"].apply(month)
+            df["sort"] = df["Date"].apply(day)
+        
+        df = df.loc[df["filter"] == int(intervall)]
+        df_grouped = df.groupby("sort").agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
+        chart_data = pd.DataFrame(df_grouped, columns=['Positive', 'Neutral', 'Negative'])
+        st.line_chart(chart_data)
+
+def main():
     st.sidebar.title("how many tweets do you want ?")
     number = st.sidebar.number_input('Insert a number',step=1,)
     language = st.sidebar.selectbox("Choose a language : ", ("French", "English"))
@@ -191,8 +215,18 @@ def main():
     st.markdown("***")
 
     bar_chart_sentiment_mean(df)
-
+    df = add_sentiment(df)
     vis_1_overview(df)
+    
+    col1, col2 = st.columns(2)
+    frequency = col1.selectbox("Choose a frequency: ", ("month", "day"))
+    if frequency == "month":
+        intervall_options = ("2022", "2021", "2020", "2019")
+    else:
+        intervall_options = ("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+    intervall = col2.selectbox("Choose an intervall: ", intervall_options)
+    vis_2_development(df, frequency, intervall)
+
 
 if __name__== "__main__" :
     main()
