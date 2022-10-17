@@ -25,7 +25,11 @@ from PIL import Image
 import warnings
 import datetime
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
+import plotly.express as px
+from math import pi
+from bokeh.palettes import Category20c
+from bokeh.plotting import figure
+from bokeh.transform import cumsum
 
 nltk.download('stopwords')
 stemmer = nltk.SnowballStemmer("english")
@@ -99,6 +103,37 @@ def bar_chart_sentiment_mean(df):
     #df = pd.concat([df1, df2, df3])
     return st.write(df1), st.bar_chart(df1)
 
+def vis_1_overview(df):
+    if not df.empty:
+        df["Most possible sentiment"] = np.nan
+        for i in range(0, len(df)):
+            pos_perc = df.at[i, "Positive"]
+            neg_perc = df.at[i, "Negative"]
+            neu_perc = df.at[i, "Neutral"]
+            max_value = max(pos_perc, neg_perc, neu_perc)
+            if max_value == pos_perc: df.at[i, "Most possible sentiment"] = "Positive"
+            elif max_value == neg_perc: df.at[i, "Most possible sentiment"] = "Negative"
+            else: df.at[i, "Most possible sentiment"] = "Neutral"
+
+        df = df.groupby(["Most possible sentiment"]).size().to_frame().sort_values([0], ascending = False).reset_index()
+        df = df.rename(columns={"Most possible sentiment": 'sentiment', 0: 'count'})
+        df['angle'] = df['count']/df['count'].sum() * 2 * pi
+        values_list = df['sentiment'].tolist()
+        color_mapping = {"Positive": '#27ae60', "Neutral": '#f1c40f', "Negative": '#c0392b'}
+        color_list = []
+        for value in values_list:
+            color_list.append(color_mapping[value])
+        df['color'] = color_list
+
+        pie_fig = figure(height=450, title="Pie Chart", toolbar_location=None, tools="hover", tooltips="@sentiment: @count", x_range=(-0.5, 1.0))
+        pie_fig.wedge(x=0, y=1, radius=0.4,
+                start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+                line_color="white", fill_color='color', legend_field='sentiment', source=df)
+
+        pie_fig.axis.axis_label = None
+        pie_fig.axis.visible = False
+        pie_fig.grid.grid_line_color = None
+        st.bokeh_chart(pie_fig, use_container_width=True)
 
 def main():
         
@@ -157,8 +192,7 @@ def main():
 
     bar_chart_sentiment_mean(df)
 
-
-
+    vis_1_overview(df)
 
 if __name__== "__main__" :
     main()
