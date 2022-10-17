@@ -99,6 +99,59 @@ def bar_chart_sentiment_mean(df):
     #df = pd.concat([df1, df2, df3])
     return st.write(df1), st.bar_chart(df1)
 
+def day(Date):
+    return Date.day
+def month(Date):
+    return Date.month
+def hour(Date):
+    return Date.hour
+def year(Date):
+    return Date.year
+    
+
+def evolution(df, Date):
+    
+    df1 = df[["Date","Negative","Neutral","Positive"]]
+    if Date == "day":
+        df1["Date"] = df1["Date"].apply(day)
+    if Date == "month":
+        df1["Date"] = df1["Date"].apply(month)
+    if Date == "hour":
+        df1["Date"] = df1["Date"].apply(hour)
+
+    #df1.set_index("Date", inplace=True)
+    return st.line_chart(df1.groupby("Date").mean()), st.write(df1.groupby("Date").mean())
+
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+def download(df,name):
+    if len(df) < 80:
+        return st.error("The Dataframe is empty")
+    return st.download_button(
+        label = "Download CSV",
+        data=df,
+        file_name=f'{name}.csv',
+        mime='text/csv',
+    )
+
+
+
+
+def vis_2_development(df, frequency, intervall):
+    df["month"] = df["Date"].apply(month)
+    df["day"] = df["Date"].apply(day)
+    df["year"] = df["Date"].apply(year)
+    df["hour"] = df["Date"].apply(hour)
+
+    df = df[df["year"]==intervall]
+    df = df.groupby(frequency).mean()
+    return st.dataframe(df)
+
+
+
 
 def main():
         
@@ -134,10 +187,19 @@ def main():
 
 
     df = web_scrp(number,lang, begin, end)
-    st.dataframe(df)
+
+    
+   
+    #st.dataframe(df)
 
     st.markdown("<h1 style='text-align: center;'>WEB SCRAPING</h1>", unsafe_allow_html=True)
     st.dataframe(df)
+
+    name = st.text_input("Write a name for the file", "CSV_Nestlé")
+
+    csv = convert_df(df)
+
+    download(csv,name)
 
     df["tweet"] = df["tweet"].apply(clean)
 
@@ -156,6 +218,23 @@ def main():
     st.markdown("***")
 
     bar_chart_sentiment_mean(df)
+
+    st.markdown("***")
+
+    evolution(df, "hour")
+
+
+    st.markdown("***")  
+
+  
+
+    col1,col2 = st.columns(2)
+    frequency = col1.selectbox("Choose a frequency : ", ("month", "hour","day"))
+    intervall = col2.selectbox("Choose an intervall : ", (df["Date"].apply(year).unique()))
+    vis_2_development(df, frequency, intervall)
+
+
+
 
 
 
