@@ -1,4 +1,8 @@
 #libraries needed
+
+#zdzcbhkcshbscdhbsbhkhks
+
+
 import streamlit as st
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
@@ -32,7 +36,7 @@ stemmer = nltk.SnowballStemmer("english")
 from nltk.corpus import stopwords
 import string
 st.markdown("# Main page 🎈")
-st.sidebar.markdown("# Main page 🎈 lalalala")
+st.sidebar.markdown("# Main page 🎈")
 
 #stopword = "to be defined"
 
