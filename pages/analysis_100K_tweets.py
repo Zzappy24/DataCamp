@@ -55,7 +55,7 @@ def clean(text):
     text=" ".join(text)
     text = [stemmer.stem(word) for word in text.split(' ')]
     text=" ".join(text)
-    text = cl(text, no_emoji=True)
+    #text = cl(text, no_emoji=True)
     
     return text
 
