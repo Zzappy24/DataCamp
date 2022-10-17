@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import nltk
-# nltk.download('stopwords*)#run once and comment it out to avoid it downloading multiple times
+#nltk.download('stopwords*)#run once and comment it out to avoid it downloading multiple times
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
