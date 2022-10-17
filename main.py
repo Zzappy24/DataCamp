@@ -32,7 +32,7 @@ stemmer = nltk.SnowballStemmer("english")
 from nltk.corpus import stopwords
 import string
 st.markdown("# Main page 🎈")
-st.sidebar.markdown("# Main page 🎈")
+st.sidebar.markdown("# Main page 🎈 lalalala")
 
 #stopword = "to be defined"
 
