@@ -29,7 +29,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 #from /Users/zappy/DataCamp/pages/web_scraping.py import *#clean,sentiment_score
 
 from main import sentiment_score
-from cleantext import clean as cl
+#from cleantext import clean as cl
 
 
 
