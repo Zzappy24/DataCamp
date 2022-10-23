@@ -21,9 +21,26 @@ def FunctionBERTSentimentLabel(inpText):
 def FunctionBERTSentimentScore(inpText):
   return(SentimentClassifier(inpText)[0]['score'])
 
+def download(df,name):
+    if len(df) < 80:
+        return st.error("The Dataframe is empty")
+    return st.download_button(
+        label = "Download CSV",
+        data=df,
+        file_name=f'{name}.csv',
+        mime='text/csv',
+    ) 
+
 df_sample = df.head() 
 df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
 df_sample['score']=df_sample['tweet'].apply(FunctionBERTSentimentScore)
+
+df['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
+df['score']=df['tweet'].apply(FunctionBERTSentimentScore)
+
+download(df,"With_bert")
+
+
 
 
 st.dataframe(df_sample)
