@@ -22,8 +22,8 @@ def FunctionBERTSentimentScore(inpText):
   return(SentimentClassifier(inpText)[0]['score'])
 
 df_sample = df.head() 
-df_sample['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
-df_sample['score']=df['tweet'].apply(FunctionBERTSentimentScore)
+df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
+df_sample['score']=df_sample['tweet'].apply(FunctionBERTSentimentScore)
 
 
 st.dataframe(df_sample)
