@@ -38,6 +38,34 @@ from nltk.corpus import stopwords
 import string
 #stopword=set(stopwords.words('english'))
 stopword = "to be defined"
+
+############################
+# define product searches: #
+############################
+product_searches = {
+    # coffee
+    "Nesquik": "esqui", 
+    "Nescafé": "nescaf", 
+    "Nespresso": "espresso|expresso|espreso|expreso",
+    "Milk": "milk",
+    "Ricoré": "ricor",
+    "Nidal": "nidal",
+    # water
+    "Vittel": "vittel", 
+    "Perrier": "perrier",
+    "San Pellegrino": "ellegrino|elegrino",
+    # food
+    "Maggi": "aggi", 
+    "Kitkat": "itkat", 
+    "Chocolate": "chocolate",
+    "Smarties": "smartie", 
+    "Buitoni": "uitoni",
+    "Cheerios": "cheerios|cherios",
+    "Lion": "lion",
+    # pets
+    "Purina": "purina"
+}
+
 def clean(text):
     text = str(text).lower()
     text = re.sub('\[.*?\]', '', text)
@@ -114,26 +142,25 @@ def add_sentiment(df):
         return df
 
 def vis_1_overview(df):
-    if not df.empty:
-        df = df.groupby(["Most possible sentiment"]).size().to_frame().sort_values([0], ascending = False).reset_index()
-        df = df.rename(columns={"Most possible sentiment": 'sentiment', 0: 'count'})
-        df['angle'] = df['count']/df['count'].sum() * 2 * pi
-        values_list = df['sentiment'].tolist()
-        color_mapping = {"Positive": '#27ae60', "Neutral": '#f1c40f', "Negative": '#c0392b'}
-        color_list = []
-        for value in values_list:
-            color_list.append(color_mapping[value])
-        df['color'] = color_list
+    df = df.groupby(["Most possible sentiment"]).size().to_frame().sort_values([0], ascending = False).reset_index()
+    df = df.rename(columns={"Most possible sentiment": 'sentiment', 0: 'count'})
+    df['angle'] = df['count']/df['count'].sum() * 2 * pi
+    values_list = df['sentiment'].tolist()
+    color_mapping = {"Positive": '#27ae60', "Neutral": '#f1c40f', "Negative": '#c0392b'}
+    color_list = []
+    for value in values_list:
+        color_list.append(color_mapping[value])
+    df['color'] = color_list
 
-        pie_fig = figure(height=450, title="Pie Chart", toolbar_location=None, tools="hover", tooltips="@sentiment: @count", x_range=(-0.5, 1.0))
-        pie_fig.wedge(x=0, y=1, radius=0.4,
-                start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-                line_color="white", fill_color='color', legend_field='sentiment', source=df)
+    pie_fig = figure(height=450, title="Pie Chart", toolbar_location=None, tools="hover", tooltips="@sentiment: @count", x_range=(-0.5, 1.0))
+    pie_fig.wedge(x=0, y=1, radius=0.4,
+            start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+            line_color="white", fill_color='color', legend_field='sentiment', source=df)
 
-        pie_fig.axis.axis_label = None
-        pie_fig.axis.visible = False
-        pie_fig.grid.grid_line_color = None
-        st.bokeh_chart(pie_fig, use_container_width=True)
+    pie_fig.axis.axis_label = None
+    pie_fig.axis.visible = False
+    pie_fig.grid.grid_line_color = None
+    st.bokeh_chart(pie_fig, use_container_width=True)
 
 def year(Date):
     return Date.year
@@ -145,19 +172,44 @@ def day(Date):
     return Date.day
 
 def vis_2_development(df, frequency, intervall):
-    if not df.empty:
-        df["month"] = df["Date"].apply(month)
-        if frequency == "day":
-            df["day"] = df["Date"].apply(day)
-            df = df.loc[df["month"] == int(intervall)]
-        df_grouped = df.groupby(frequency).agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
-        chart_data = pd.DataFrame(df_grouped, columns=['Positive', 'Neutral', 'Negative'])
-        st.line_chart(chart_data)
+    df["month"] = df["Date"].apply(month)
+    if frequency == "day":
+        df["day"] = df["Date"].apply(day)
+        df = df.loc[df["month"] == int(intervall)]
+    df_grouped = df.groupby(frequency).agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
+    chart_data = pd.DataFrame(df_grouped, columns=['Positive', 'Neutral', 'Negative'])
+    st.line_chart(chart_data)
 
 def filter_for_year(df, filter):
     df["year"] = df["Date"].apply(year)
     df = df.loc[df["year"] == int(filter)]
     return df
+
+def get_product_name(name):
+    for key, value in product_searches.items():
+        if value == name:
+            return key 
+    return "key doesn't exist"
+
+def filter_for_products(df, product_names):
+    df_filtered = pd.DataFrame()
+    for name in product_names:
+        df_filtered_piece = df[df["tweet"].str.contains(name)==True]
+        df_filtered_piece["product_name"] = get_product_name(name)
+        df_filtered = pd.concat([df_filtered, df_filtered_piece], axis=0)
+    return df_filtered
+
+def vis_3_products(df, product_names):
+    print("df: ", df["tweet"])
+    df = filter_for_products(df, product_names)
+    print("TYPES TYPES TYPES: ", df.dtypes)
+    print("df[product_name].values: ", df["product_name"].values)
+    df_grouped = df[["product_name", "Positive", "Neutral", "Negative"]]
+    df_grouped = df.groupby("product_name").agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
+    if df_grouped.empty:
+        st.write("There are no tweets about your selected products.")
+    else:
+        st.bar_chart(df_grouped)
 
 def main():
     st.sidebar.title("how many tweets do you want ?")
@@ -208,13 +260,13 @@ def main():
 
     st.markdown("***")
 
-    bar_chart_sentiment(df)
+    #bar_chart_sentiment(df)
 
     st.markdown("***")
 
-    bar_chart_sentiment_mean(df)
+    #bar_chart_sentiment_mean(df)
     df = add_sentiment(df)
-    vis_1_overview(df)
+    #vis_1_overview(df)
     
     col1, col2, col3 = st.columns(3)
     year_filter = col1.radio("Choose a year: ", ["2022", "2021", "2020", "2019"])
@@ -226,7 +278,15 @@ def main():
         col3.write(show_message)
         intervall = ""
     df_filter = filter_for_year(df, year_filter)
-    vis_2_development(df_filter, frequency, intervall)
+    #vis_2_development(df_filter, frequency, intervall)
+
+
+    product_names = st.multiselect("Select the products that you want to analyze: ", product_searches.keys())
+    search_words = []
+    for name in product_names:
+        search_words.append(product_searches[name])
+    if search_words != []:
+        vis_3_products(df, search_words)
 
 
 if __name__== "__main__" :
