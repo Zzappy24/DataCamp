@@ -1,4 +1,5 @@
 #libraries needed
+from turtle import fd
 import streamlit as st
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
@@ -72,15 +73,11 @@ def sentiment_score(df):
     return df
 
 def web_scrp(number, lang, begin, end):
-
     if begin == None or end == None:
         query = f"(Nestlé OR Nestle OR #Nestlé OR #Nestle lang:{lang} "
-
     else:
         query = f"(Nestlé OR Nestle OR #Nestlé OR #Nestle since:{begin} until:{end} lang:{lang} "
-
     tweets = []
-
     for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
         if i>(number-1):
             break
@@ -149,17 +146,18 @@ def day(Date):
 
 def vis_2_development(df, frequency, intervall):
     if not df.empty:
-        if frequency == "month":
-            df["filter"] = df["Date"].apply(year)
-            df["sort"] = df["Date"].apply(month)
-        else: #frequency == "day":
-            df["filter"] = df["Date"].apply(month)
-            df["sort"] = df["Date"].apply(day)
-        
-        df = df.loc[df["filter"] == int(intervall)]
-        df_grouped = df.groupby("sort").agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
+        df["month"] = df["Date"].apply(month)
+        if frequency == "day":
+            df["day"] = df["Date"].apply(day)
+            df = df.loc[df["month"] == int(intervall)]
+        df_grouped = df.groupby(frequency).agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
         chart_data = pd.DataFrame(df_grouped, columns=['Positive', 'Neutral', 'Negative'])
         st.line_chart(chart_data)
+
+def filter_for_year(df, filter):
+    df["year"] = df["Date"].apply(year)
+    df = df.loc[df["year"] == int(filter)]
+    return df
 
 def main():
     st.sidebar.title("how many tweets do you want ?")
@@ -218,14 +216,17 @@ def main():
     df = add_sentiment(df)
     vis_1_overview(df)
     
-    col1, col2 = st.columns(2)
-    frequency = col1.selectbox("Choose a frequency: ", ("month", "day"))
-    if frequency == "month":
-        intervall_options = ("2022", "2021", "2020", "2019")
+    col1, col2, col3 = st.columns(3)
+    year_filter = col1.radio("Choose a year: ", ["2022", "2021", "2020", "2019"])
+    frequency = col2.radio("Choose a frequency: ", ["month", "day"])
+    if frequency == "day":
+        intervall = col3.selectbox("Choose the month: ", ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"])
     else:
-        intervall_options = ("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
-    intervall = col2.selectbox("Choose an intervall: ", intervall_options)
-    vis_2_development(df, frequency, intervall)
+        show_message = "Visualization of monthly reputation for " + year_filter + "."
+        col3.write(show_message)
+        intervall = ""
+    df_filter = filter_for_year(df, year_filter)
+    vis_2_development(df_filter, frequency, intervall)
 
 
 if __name__== "__main__" :
