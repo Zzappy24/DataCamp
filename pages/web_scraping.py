@@ -25,6 +25,8 @@ from PIL import Image
 import warnings
 import datetime
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from scipy.special import softmax
 
 
 nltk.download('stopwords')
@@ -46,6 +48,8 @@ def clean(text):
     text=" ".join(text)
     text = [stemmer.stem(word) for word in text.split(' ')]
     text=" ".join(text)
+    #text = re.sub('[^A-Za-z0-9]+32', '', text)
+
     return text
 
 def remove_emoji(string):
@@ -146,9 +150,53 @@ def vis_2_development(df, frequency, intervall):
     df["year"] = df["Date"].apply(year)
     df["hour"] = df["Date"].apply(hour)
 
+
+
     df = df[df["year"]==intervall]
     df = df.groupby(frequency).mean()
     return st.dataframe(df)
+
+
+L=[]
+def roberta(text):
+    #L=[]
+    # load model and tokenizer
+    roberta = "cardiffnlp/twitter-roberta-base-sentiment"
+
+    model = AutoModelForSequenceClassification.from_pretrained(roberta)
+    tokenizer = AutoTokenizer.from_pretrained(roberta)
+
+    encoded_tweet = tokenizer(text, return_tensors='pt')
+    #st.write(encoded_tweet)
+    output = model(**encoded_tweet)
+
+    scores = output[0][0].detach().numpy()
+    scores = softmax(scores)
+    #st.write(type(scores))
+
+    #st.write(scores,type(scores))
+
+    dfT = pd.DataFrame(scores)
+    dfT = dfT.T
+
+    dfT0 = dfT[0]
+    dfT1 = dfT[1]
+    dfT2 = dfT[2]
+
+    #st.write(dfT,type(dfT))
+   
+
+
+    #st.write(dft[0].values)
+    return dfT
+    
+@st.cache()
+def append_L(L):
+    M=[]
+    return M.append(L)
+
+
+    
 
 
 
@@ -187,6 +235,7 @@ def main():
 
 
     df = web_scrp(number,lang, begin, end)
+    dfr = df.copy()
 
     
    
@@ -233,7 +282,20 @@ def main():
     intervall = col2.selectbox("Choose an intervall : ", (df["Date"].apply(year).unique()))
     vis_2_development(df, frequency, intervall)
 
+    #L=[]
+    #labels = ['Negative', 'Neutral', 'Positive']
+    #for i in range(len(df["tweet"])):
+     #   L.append(dfr["tweet"].apply(roberta))
 
+    #st.markdown("***")
+
+    #st.title("concat")
+    #st.write(L)
+
+
+    
+
+    #st.write(dfr)
 
 
 

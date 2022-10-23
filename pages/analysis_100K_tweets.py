@@ -41,6 +41,8 @@ import string
 
 stopword=set(stopwords.words('english'))
 
+
+
 def clean(text):
     text = str(text).lower()
     text = re.sub('\[.*?\]', '', text)
@@ -49,6 +51,7 @@ def clean(text):
     text = re.sub('<.*?>+', '', text)
     text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
     text = re.sub('\n', '', text)
+    #text = re.sub('[^A-Za-z0-9]+', '', text)
     text = remove_emoji(text)
     text = re.sub('\w*\d\w*', '', text)
     text = [word for word in text.split(' ') if word not in stopword]
@@ -75,8 +78,51 @@ def bar_chart_sentiment(df):
 
 @st.cache
 def load_csv(link):
-    df = pd.read_csv(link)
+    df_load = pd.read_csv(link)
+    return df_load
+
+def filter_for_year(df, filter):
+    df["year"] = df["Date"].apply(year)
+    df = df.loc[df["year"] == int(filter)]
     return df
+
+
+def vis_2_development(df, frequency, intervall):
+    if not df.empty:
+        df["month"] = df["Date"].apply(month)
+        if frequency == "day":
+            df["day"] = df["Date"].apply(day)
+            df = df.loc[df["month"] == int(intervall)]
+        df_grouped = df.groupby(frequency).agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
+        chart_data = pd.DataFrame(df_grouped, columns=['Positive', 'Neutral', 'Negative'])
+        return chart_data, st.line_chart(chart_data)
+
+def to_date(date_string):
+    return datetime.strptime(date_string, format)
+
+def year(Date):
+    return Date.year
+
+def month(Date):
+    return Date.month
+
+def day(Date):
+    return Date.day
+
+def download(df,name):
+    if len(df) < 80:
+        return st.error("The Dataframe is empty")
+    return st.download_button(
+        label = "Download CSV",
+        data=df,
+        file_name=f'{name}.csv',
+        mime='text/csv',
+    )
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
 
 def main():
 
@@ -87,13 +133,16 @@ def main():
         #df =pd.read_csv("./sentiment_Nestlé_200K.csv")
 
     #df = load_csv("./sentiment_100K_en.csv")
-    df =pd.read_csv("./sentiment_Nestlé_200K.csv")
+    df = pd.read_csv("./sentiment_100K_en.csv")
 
+    #df =pd.read_csv("./sentiment_Nestlé_200K.csv")
 
 
     df.drop(df.columns[0],axis=1, inplace=True)
-    st.dataframe(df)
 
+    df["Date"] = pd.to_datetime(df["Date"])
+
+    df_natural = df.copy()
 
 
     st.dataframe(df)
@@ -105,6 +154,27 @@ def main():
 
     st.dataframe(df)
 
+    df_concat = pd.DataFrame(pd.concat([df_natural,df[["Positive","Negative","Neutral"]]],axis=1))
+
+    st.dataframe(df_concat)
+
+    
+
+    download(convert_df(df_concat),"100K_with_scores")
+
+
+
+    col1, col2, col3 = st.columns(3)
+    year_filter = col1.radio("Choose a year: ", ["2022", "2021", "2020", "2019"])
+    frequency = col2.radio("Choose a frequency: ", ["month", "day"])
+    if frequency == "day":
+        intervall = col3.selectbox("Choose the month: ", ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"])
+    else:
+        show_message = "Visualization of monthly reputation for " + year_filter + "."
+        col3.write(show_message)
+        intervall = ""
+    df_filter = filter_for_year(df, year_filter)
+    vis_2_development(df_filter, frequency, intervall)
 
 
 
