@@ -68,7 +68,7 @@ product_searches = {
 }
 deleted_wordlist = [
     "la", "le", "les", "ai", "as", "a", "ont", "suis", "es", "est", "sont", "et", "comme", "je", "son", "que", "il", "était", "pour", "sur", "sont", "avec", "ils", "à", "un", "avoir", "ce", "par", "mais", "ou", "eu", "de", "un", "une", "dans", "nous", "autre", "qui", "si", "leur", "ne", "pas", "plus", "ici", "tel",
-    "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "just", "him", "take", "into", "them", "could", "your", "see", "also", "us", "these"
+    "the", "is", "was", "our", "are", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "just", "him", "take", "into", "them", "could", "your", "see", "also", "us", "these"
 ]
 
 def clean(text):
@@ -141,9 +141,18 @@ def add_sentiment(df):
             neg_perc = df.at[i, "Negative"]
             neu_perc = df.at[i, "Neutral"]
             max_value = max(pos_perc, neg_perc, neu_perc)
-            if max_value == pos_perc: df.at[i, "Most possible sentiment"] = "Positive"
-            elif max_value == neg_perc: df.at[i, "Most possible sentiment"] = "Negative"
-            else: df.at[i, "Most possible sentiment"] = "Neutral"
+            if max_value == neu_perc:
+                if max_value <= 0.8:
+                    max2 = max(pos_perc, neg_perc)
+                    if max2==pos_perc:
+                        df.at[i, "Most possible sentiment"] = "Positive"
+                    else:
+                        df.at[i, "Most possible sentiment"] = "Negative"
+                else: df.at[i, "Most possible sentiment"] = "Neutral"
+            elif max_value == pos_perc: 
+                df.at[i, "Most possible sentiment"] = "Positive"
+            else:
+                df.at[i, "Most possible sentiment"] = "Negative"
         return df
 
 def vis_1_overview(df):
@@ -313,7 +322,7 @@ def main():
         vis_3_products(df, search_words)
         pass
 
-    words_displayed = st.number_input('Choose maximum number of displayed words', value=15, step=1, min_value=0)
+    words_displayed = st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0)
     vis_5_opinions(df, words_displayed)
 
 if __name__== "__main__" :
