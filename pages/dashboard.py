@@ -30,6 +30,7 @@ from bokeh.palettes import Category20c
 from bokeh.plotting import figure
 from bokeh.transform import cumsum
 
+
 def filter_for_year(df, filter):
     df["year"] = df["Date"].apply(year)
     df = df.loc[df["year"] == int(filter)]
@@ -55,6 +56,12 @@ def lineP(df, frequency, intervall):
     df = df[[frequency,"Negative","Neutral","Positive"]]
     df = df.groupby(frequency).mean()
     return st.dataframe(df), st.line_chart(df)
+
+def get_product_name(name):
+    for key, value in product_searches.items():
+        if value == name:
+            return key 
+    return "key doesn't exist"
 
 def evolution(df, Date):
     df1 = df[["Date","Negative","Neutral","Positive"]]
