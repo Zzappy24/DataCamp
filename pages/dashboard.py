@@ -226,65 +226,69 @@ def vis_3_opinions(df, words_displayed, deleted_words_selected):
             st.subheader(f"{key} classified tweets")
             st.write(fig)
 
+def main():
 
-#df = pd.read_csv("./100K_with_scores.csv")
-df = pd.read_csv("./200K_with_scores.csv")
+    #df = pd.read_csv("./100K_with_scores.csv")
+    df = pd.read_csv("./200K_with_scores.csv")
 
-df.drop(df.columns[0],axis=1, inplace=True)
+    df.drop(df.columns[0],axis=1, inplace=True)
 
-df["Date"] = pd.to_datetime(df["Date"])
+    df["Date"] = pd.to_datetime(df["Date"])
 
-df_natural = df.copy()
+    df_natural = df.copy()
 
-st.title("Database with scores")
+    st.title("Database with scores")
 
-st.dataframe(df)
-
-
-
-st.markdown("***")
-st.title("Evolution")
-col1,col2 = st.columns(2)
-frequency = col1.selectbox("Choose a frequency : ", ("month", "year","day"))
-intervall = col2.selectbox("Choose an intervall : ", (df["Date"].apply(year).unique()))
-lineP(df, frequency, intervall)
+    st.dataframe(df)
 
 
-st.markdown("***")
-st.title("Second part: Visualizing Data")
-#############################
-# Visualization 1: Overview #
-#############################
-st.header("1. General overview")
-st.subheader("Does the company Nestlé have a good or bad reputation?")
-df = add_sentiment(df)
-vis_1_overview(df)
 
-st.markdown("***")
-#############################
-# Visualization 2: Products #
-#############################
-st.header("2. Product overview")
-st.subheader("Are specific products associated in a good or bad way?")
-product_names = st.multiselect("Select the products of Nestlé that you want to analyze: ", product_searches.keys())
-search_words = []
-for name in product_names:
-    search_words.append(product_searches[name])
-if search_words != []:
-    vis_2_products(df, search_words)
-else:
-    st.warning("No products where selected.")
+    st.markdown("***")
+    st.title("Evolution")
+    col1,col2 = st.columns(2)
+    frequency = col1.selectbox("Choose a frequency : ", ("month", "year","day"))
+    intervall = col2.selectbox("Choose an intervall : ", (df["Date"].apply(year).unique()))
+    lineP(df, frequency, intervall)
 
-st.markdown("***")
-############################
-# Visualization 3: Details #
-############################
-st.header("3. Detailed View")
-st.subheader("Which are the most mentioned good/bad opinions?")
-st.write("We count which words appear the most in all tweets that you have selected.")
-deleted_words_selected = st.text_input("Which words should not be counted? Separate them with spaces!")
-words_displayed = int(st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0))
-vis_3_opinions(df, words_displayed, deleted_words_selected)
+
+    st.markdown("***")
+    st.title("Second part: Visualizing Data")
+    #############################
+    # Visualization 1: Overview #
+    #############################
+    st.header("1. General overview")
+    st.subheader("Does the company Nestlé have a good or bad reputation?")
+    df = add_sentiment(df)
+    vis_1_overview(df)
+
+    st.markdown("***")
+    #############################
+    # Visualization 2: Products #
+    #############################
+    st.header("2. Product overview")
+    st.subheader("Are specific products associated in a good or bad way?")
+    product_names = st.multiselect("Select the products of Nestlé that you want to analyze: ", product_searches.keys())
+    search_words = []
+    for name in product_names:
+        search_words.append(product_searches[name])
+    if search_words != []:
+        vis_2_products(df, search_words)
+    else:
+        st.warning("No products where selected.")
+
+    st.markdown("***")
+    ############################
+    # Visualization 3: Details #
+    ############################
+    st.header("3. Detailed View")
+    st.subheader("Which are the most mentioned good/bad opinions?")
+    st.write("We count which words appear the most in all tweets that you have selected.")
+    deleted_words_selected = st.text_input("Which words should not be counted? Separate them with spaces!")
+    words_displayed = int(st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0))
+    vis_3_opinions(df, words_displayed, deleted_words_selected)
+
+if __name__== main():
+    main()
 
 
 

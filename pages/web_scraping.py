@@ -167,6 +167,20 @@ def web_scrp(number, lang, begin, end):
     df = pd.DataFrame(tweets, columns =(["Date","ID","url","username","source","location","tweet","num of likes","num of _retweet"]))
     return df
 
+def download(df,name):
+    if len(df) < 80:
+        return st.error("The Dataframe is empty")
+    return st.download_button(
+        label = "Download CSV",
+        data=df,
+        file_name=f'{name}.csv',
+        mime='text/csv',
+    )
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
 ####################
 # Filter dataframe #
 ####################
@@ -332,6 +346,8 @@ def main():
     df = sentiment_score(df)
     df = add_sentiment(df)
     st.dataframe(df)
+    download(convert_df(df),"Sentiment_analysis.csv")
+
     
     st.markdown("***")
     st.title("Second part: Visualizing Data")
