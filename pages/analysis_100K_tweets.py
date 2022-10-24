@@ -133,9 +133,9 @@ def main():
         #df =pd.read_csv("./sentiment_Nestlé_200K.csv")
 
     #df = load_csv("./sentiment_100K_en.csv")
-    df = pd.read_csv("./sentiment_100K_en.csv")
+    #df = pd.read_csv("./sentiment_100K_en.csv")
 
-    #df =pd.read_csv("./sentiment_Nestlé_200K.csv")
+    df =pd.read_csv("./sentiment_Nestlé_200K.csv")
 
 
     df.drop(df.columns[0],axis=1, inplace=True)
