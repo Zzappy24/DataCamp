@@ -23,7 +23,7 @@ def convert_df(df):
 
 
 def main():
-
+    st.title("BERT")
     df = pd.read_csv("./100K_with_scores.csv")
     df.drop(df.columns[0],axis=1, inplace=True)
     df.drop(["Positive"],axis=1, inplace=True)
@@ -34,7 +34,7 @@ def main():
     st.dataframe(df)
 
 
-    df_sample = df.head() 
+    df_sample = df.head(100) 
     df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
     df_sample['score']=df_sample['tweet'].apply(FunctionBERTSentimentScore)
 
