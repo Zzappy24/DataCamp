@@ -34,7 +34,7 @@ def main():
     st.dataframe(df)
 
 
-    df_sample = df.head(1000) 
+    df_sample = df.head(100) 
     df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
     df_sample['score']=df_sample['tweet'].apply(FunctionBERTSentimentScore)
 
