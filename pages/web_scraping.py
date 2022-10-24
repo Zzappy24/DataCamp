@@ -217,6 +217,10 @@ def vis_1_overview(df):
     pie_fig.axis.axis_label = None
     pie_fig.axis.visible = False
     pie_fig.grid.grid_line_color = None
+
+    st.write("This feature gives an overview of the company Nestlé and its reputation.\n",
+    "For each tweet, we count its most possible sentiment of the sentiment analysis.",
+    "The piechart counts the percentages of the most possible sentiments:")
     st.bokeh_chart(pie_fig, use_container_width=True)
 
 def vis_2_products(df, product_names):
@@ -231,7 +235,9 @@ def vis_2_products(df, product_names):
     else:
         st.bar_chart(df_grouped)
 
-def vis_3_opinions(df, words_displayed):
+def vis_3_opinions(df, words_displayed, deleted_words_selected):
+    deleted_words_selected = deleted_words_selected.lower().split()
+    print("deleted_words_selected", deleted_words_selected)
     # Prepare dataframe
     df_dict = filter_for_not_neutral(df)
     for key, value in df_dict.items():
@@ -242,6 +248,7 @@ def vis_3_opinions(df, words_displayed):
             common_word = pd.Series(' '.join(value['tweet']).lower().split()).value_counts()
             common_word = common_word.reset_index().rename(columns={"index":"Word", 0:"Count"}) # reset the index and rename the columns 
             common_word = common_word.loc[~common_word["Word"].isin(deleted_wordlist)]
+            common_word = common_word.loc[~common_word["Word"].isin(deleted_words_selected)]
             common_word = common_word.head(words_displayed)
 
             # Create barchart
@@ -252,7 +259,7 @@ def vis_3_opinions(df, words_displayed):
             else:
                 fig.update_traces(marker_color='red')
 
-            st.write(key)
+            st.subheader(key)
             st.write(fig)
 
 def main():
@@ -288,59 +295,80 @@ def main():
             end = col2.date_input(
             "End",
             datetime.date(2022, 10, 6), key="e")
-    
+
+    ################
+    # Introduction #
+    ################
+    st.title("Web scraping visualizations")
+    st.write("Welcome to the web scraping part of the project!",
+    "We will first scrap our data and show you the resulting dataframe.",
+    "Then we will visualize our results to present insights into the reputation of Nestlé.")
+
+    st.title("First part: Getting Data")
     ################
     # Web Scraping #
     ################
+    st.header("Web scraping")
+    st.write("We scrape the data from tweets on Twitter.",
+    "Then we save the results in this dataframe:")
     df = web_scrp(number, lang, begin, end)
     st.dataframe(df)
-    st.markdown("<h1 style='text-align: center;'>WEB SCRAPING</h1>", unsafe_allow_html=True)
-    st.dataframe(df)
-
-    df["tweet"] = df["tweet"].apply(clean)
 
     ############
     # Cleaning #
     ############
-    st.title("cleaning the text")
-    st.write(stopword)
+    st.header("Cleaning the data")
+    st.write("Cleaning the data means that we delete every emoji, website link or special character.",
+    "It also means that we erase words that are not important for the sentiment analysis (e.g. 'we', 'is', ...).",
+    "After that our dataframe looks like this:")
+    df["tweet"] = df["tweet"].apply(clean)
     st.dataframe(df)
 
-    ########################
-    # Add Sentiment Scores #
-    ########################
+    ######################
+    # Sentiment analysis #
+    ######################
+    st.header("Sentiment analysis")
+    st.write("Now, we perform the sentiment analysis from nltk/bert.",
+    "We do not only add the percentages of having a positive / neutral / negative chronotation to each tweet.",
+    "We also add the most possible sentiment that we will use in the visualizations below.")
     df = sentiment_score(df)
     df = add_sentiment(df)
-    st.title("Sentiment scores")
     st.dataframe(df)
     
-    st.markdown("***")    
+    st.markdown("***")
+    st.title("Second part: Visualizing Data")
     #############################
     # Visualization 1: Overview #
     #############################
-    st.title("1. General: Does the company have a good or bad reputation?")
+    st.header("1. General overview")
+    st.subheader("Does the company Nestlé have a good or bad reputation?")
     vis_1_overview(df)
 
     st.markdown("***")
     #############################
     # Visualization 2: Products #
     #############################
-    st.title("2. Product: Are specific products associated in a good or bad way?")
-    product_names = st.multiselect("Select the products that you want to analyze: ", product_searches.keys())
+    st.header("2. Product overview")
+    st.subheader("Are specific products associated in a good or bad way?")
+    product_names = st.multiselect("Select the products of Nestlé that you want to analyze: ", product_searches.keys())
     search_words = []
     for name in product_names:
         search_words.append(product_searches[name])
     if search_words != []:
         vis_2_products(df, search_words)
+    else:
+        st.warning("No products where selected.")
 
     st.markdown("***")
     ############################
     # Visualization 3: Details #
     ############################
-    st.title("3. Detail: Which are the most mentioned good/bad opinions?")
+    st.header("3. Detailed View")
+    st.subheader("Which are the most mentioned good/bad opinions?")
+    st.write("We count which words appear the most in all tweets that you have selected.")
+    deleted_words_selected = st.text_input("Which words should not be counted? Separate them with spaces!")
     words_displayed = st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0)
-    vis_3_opinions(df, words_displayed)
+    vis_3_opinions(df, words_displayed, deleted_words_selected)
 
 if __name__== "__main__" :
     main()
-
