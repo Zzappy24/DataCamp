@@ -144,37 +144,32 @@ def main():
 
     df_natural = df.copy()
 
-
+    st.title("Analysis")
     st.dataframe(df)
+    st.markdown("***")
 
 
     df["tweet"] = df["tweet"].apply(clean)
 
     df = sentiment_score(df)
 
+    st.title("data cleaning and scores")
     st.dataframe(df)
+    st.markdown("***")
+
+
 
     df_concat = pd.DataFrame(pd.concat([df_natural,df[["Positive","Negative","Neutral"]]],axis=1))
 
+    st.title("score on the original dataframe")
     st.dataframe(df_concat)
+    st.markdown("***")
+
 
     
 
     download(convert_df(df_concat),"100K_with_scores")
 
-
-
-    col1, col2, col3 = st.columns(3)
-    year_filter = col1.radio("Choose a year: ", ["2022", "2021", "2020", "2019"])
-    frequency = col2.radio("Choose a frequency: ", ["month", "day"])
-    if frequency == "day":
-        intervall = col3.selectbox("Choose the month: ", ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"])
-    else:
-        show_message = "Visualization of monthly reputation for " + year_filter + "."
-        col3.write(show_message)
-        intervall = ""
-    df_filter = filter_for_year(df, year_filter)
-    vis_2_development(df_filter, frequency, intervall)
 
 
 
