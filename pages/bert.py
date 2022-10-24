@@ -38,13 +38,13 @@ df_sample['score']=df_sample['tweet'].apply(FunctionBERTSentimentScore)
 st.dataframe(df_sample)
 
 
-df['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
-df['score']=df['tweet'].apply(FunctionBERTSentimentScore)
+#df['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
+#df['score']=df['tweet'].apply(FunctionBERTSentimentScore)
 
-download(df,"With_bert")
-
-
+download(df_sample,"With_bert")
 
 
-st.dataframe(df)
+
+
+#st.dataframe(df)
 

@@ -1,5 +1,3 @@
-from turtle import fd
-from click import command
 import streamlit as st
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
