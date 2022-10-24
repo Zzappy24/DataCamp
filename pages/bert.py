@@ -41,8 +41,8 @@ st.dataframe(df_sample)
 
 #df['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
 #df['score']=df['tweet'].apply(FunctionBERTSentimentScore)
-convert_df(df_sample)
-download(df_sample,"With_bert")
+
+download(convert_df(df_sample),"With_bert")
 
 
 
