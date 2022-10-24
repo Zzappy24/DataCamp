@@ -365,7 +365,7 @@ def main():
     st.subheader("Which are the most mentioned good/bad opinions?")
     st.write("We count which words appear the most in all tweets that you have selected.")
     deleted_words_selected = st.text_input("Which words should not be counted? Separate them with spaces!")
-    words_displayed = st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0)
+    words_displayed = int(st.number_input('Choose maximum number of displayed words', value=10, step=1, min_value=0))
     vis_3_opinions(df, words_displayed, deleted_words_selected)
 
 if __name__== "__main__" :
