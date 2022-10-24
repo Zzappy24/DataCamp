@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from transformers import pipeline
 
+SentimentClassifier = pipeline("sentiment-analysis")
 
 def FunctionBERTSentimentLabel(inpText):
   return(SentimentClassifier(inpText)[0]['label'])
@@ -32,7 +33,6 @@ def main():
 
     st.dataframe(df)
 
-    SentimentClassifier = pipeline("sentiment-analysis")
 
     df_sample = df.head() 
     df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
