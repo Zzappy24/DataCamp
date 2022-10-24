@@ -28,6 +28,9 @@ def download(df,name):
         file_name=f'{name}.csv',
         mime='text/csv',
     ) 
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
 
 df_sample = df.head() 
 df_sample['Sentiment']=df_sample['tweet'].apply(FunctionBERTSentimentLabel)
@@ -38,7 +41,7 @@ st.dataframe(df_sample)
 
 #df['Sentiment']=df['tweet'].apply(FunctionBERTSentimentLabel)
 #df['score']=df['tweet'].apply(FunctionBERTSentimentScore)
-
+convert_df(df_sample)
 download(df_sample,"With_bert")
 
 
