@@ -128,9 +128,6 @@ def bar_chart_sentiment_mean(df):
     df1 = df[["Negative","Positive","Neutral"]].mean()
     df1 = pd.DataFrame(df1)
     df1.rename(columns = {0 : "Avis"}, inplace=True)
-    #df2 = pd.DataFrame(df["Neutral"])
-    #df3 = pd.DataFrame(df["Positive"])
-    #df = pd.concat([df1, df2, df3])
     return st.write(df1), st.bar_chart(df1)
 
 def add_sentiment(df):
