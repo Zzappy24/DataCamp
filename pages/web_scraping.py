@@ -1,5 +1,6 @@
 #libraries needed
 from turtle import fd
+from click import command
 import streamlit as st
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
@@ -65,6 +66,10 @@ product_searches = {
     # pets
     "Purina": "purina"
 }
+deleted_wordlist = [
+    "la", "le", "les", "ai", "as", "a", "ont", "suis", "es", "est", "sont", "et", "comme", "je", "son", "que", "il", "était", "pour", "sur", "sont", "avec", "ils", "à", "un", "avoir", "ce", "par", "mais", "ou", "eu", "de", "un", "une", "dans", "nous", "autre", "qui", "si", "leur", "ne", "pas", "plus", "ici", "tel",
+    "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "just", "him", "take", "into", "them", "could", "your", "see", "also", "us", "these"
+]
 
 def clean(text):
     text = str(text).lower()
@@ -200,16 +205,35 @@ def filter_for_products(df, product_names):
     return df_filtered
 
 def vis_3_products(df, product_names):
-    print("df: ", df["tweet"])
     df = filter_for_products(df, product_names)
-    print("TYPES TYPES TYPES: ", df.dtypes)
-    print("df[product_name].values: ", df["product_name"].values)
     df_grouped = df[["product_name", "Positive", "Neutral", "Negative"]]
     df_grouped = df.groupby("product_name").agg({"Positive": ['mean'], "Neutral": ['mean'], "Negative": ['mean']})
     if df_grouped.empty:
         st.write("There are no tweets about your selected products.")
     else:
         st.bar_chart(df_grouped)
+
+def filter_for_not_neutral(df):
+    df_pos = df.loc[df["Most possible sentiment"] == "Positive"]
+    df_pos = df_pos[["tweet"]]
+    df_neg = df.loc[df["Most possible sentiment"] == "Negative"]
+    df_neg = df_neg[["tweet"]]
+    return {"Positive Opinions": df_pos, "Negative Opinions": df_neg}
+
+def vis_5_opinions(df, words_displayed):
+    df_dict = filter_for_not_neutral(df)
+    for key, value in df_dict.items():
+        if value.empty:
+            st.warning("There are no positive classified tweets.")
+        else:
+            common_word = pd.Series(' '.join(value['tweet']).lower().split()).value_counts()
+            common_word = common_word.reset_index().rename(columns={"index":"Word", 0:"Count"}) # reset the index and rename the columns 
+            common_word = common_word.loc[~common_word["Word"].isin(deleted_wordlist)]
+            common_word = common_word.head(words_displayed)
+            st.write(key)
+            fig = px.bar(common_word, x='Word', y='Count')
+            fig.update_layout(xaxis_title="Words ordered by appearance", yaxis_title="Count of words")
+            st.write(fig)
 
 def main():
     st.sidebar.title("how many tweets do you want ?")
@@ -264,9 +288,9 @@ def main():
 
     st.markdown("***")
 
-    #bar_chart_sentiment_mean(df)
+    bar_chart_sentiment_mean(df)
     df = add_sentiment(df)
-    #vis_1_overview(df)
+    vis_1_overview(df)
     
     col1, col2, col3 = st.columns(3)
     year_filter = col1.radio("Choose a year: ", ["2022", "2021", "2020", "2019"])
@@ -278,7 +302,7 @@ def main():
         col3.write(show_message)
         intervall = ""
     df_filter = filter_for_year(df, year_filter)
-    #vis_2_development(df_filter, frequency, intervall)
+    vis_2_development(df_filter, frequency, intervall)
 
 
     product_names = st.multiselect("Select the products that you want to analyze: ", product_searches.keys())
@@ -287,7 +311,10 @@ def main():
         search_words.append(product_searches[name])
     if search_words != []:
         vis_3_products(df, search_words)
+        pass
 
+    words_displayed = st.number_input('Choose maximum number of displayed words', value=15, step=1, min_value=0)
+    vis_5_opinions(df, words_displayed)
 
 if __name__== "__main__" :
     main()
