@@ -22,8 +22,6 @@ def FunctionBERTSentimentScore(inpText):
   return(SentimentClassifier(inpText)[0]['score'])
 
 def download(df,name):
-    if len(df) < 80:
-        return st.error("The Dataframe is empty")
     return st.download_button(
         label = "Download CSV",
         data=df,
